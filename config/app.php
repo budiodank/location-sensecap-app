@@ -190,6 +190,8 @@ return [
         // Illuminate\Translation\TranslationServiceProvider::class,
         // Illuminate\Validation\ValidationServiceProvider::class,
         // Illuminate\View\ViewServiceProvider::class,
+        App\Providers\RabbitMQServiceProvider::class,
+        Bschmitt\Amqp\AmqpServiceProvider::class,
     ])->toArray(),
 
     /*
@@ -204,7 +206,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        // 'Example' => App\Facades\Example::class,
+        'Amqp' => 'Bschmitt\Amqp\Facades\Amqp',
     ])->toArray(),
 
 ];

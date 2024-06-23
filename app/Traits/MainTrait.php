@@ -10,7 +10,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-// use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
 
 trait MainTrait
 {
@@ -119,14 +119,15 @@ trait MainTrait
     //     ];
     // }
 
-    // public function amqpCheckConnection(){
-    //     try {
-    //         $connection = new AMQPStreamConnection(config('amqp.properties.production.host'), config('amqp.properties.production.port'), config('amqp.properties.production.username'), config('amqp.properties.production.password'));
-    //         $channel = $connection->channel();
+    public function amqpCheckConnection()
+    {
+        try {
+            $connection = new AMQPStreamConnection(config('amqp.properties.production.host'), config('amqp.properties.production.port'), config('amqp.properties.production.username'), config('amqp.properties.production.password'));
+            $channel = $connection->channel();
 
-    //         return true;
-    //     } catch (Exception $e) {
-    //         return false;
-    //     }
-    // }
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }

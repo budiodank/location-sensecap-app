@@ -1,8 +1,10 @@
 @extends('layouts.app')
-@section('title', 'General Dashboard')
+@section('title', 'Mapbox Dashboard')
 @push('style')
 <link rel="stylesheet" type="text/css" href="/assets/src/plugins/mapbox/mapbox.css" />
 <script src="/assets/src/plugins/mapbox/mapbox.js"></script>
+<!-- <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script> -->
+<script src="/assets/src/scripts/stomp.min.js"></script>
 <style>
     #map {
         width: 100%;
@@ -33,7 +35,7 @@
         <h2 class="h3 mb-0">Location Overview</h2>
     </div>
 
-    <div class="row pb-10">
+    <!-- <div class="row pb-10">
         <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
             <div class="card-box height-100-p widget-style3">
                 <div class="d-flex flex-wrap">
@@ -100,7 +102,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="card-box pb-10">
         <div class="h5 pd-20 mb-0">Recent Location</div>
@@ -111,9 +113,54 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        getDataLocation()
+        // getDataLocation()
+        // Running Pusher
+        // Pusher.logToConsole = true;
+
+        // var pusher = new Pusher('YOUR_PUSHER_ACCESS', {
+        //     cluster: 'ap1'
+        // });
+
+        // var channel = pusher.subscribe('locations');
+        // channel.bind('location-event', function(data) {
+        //     console.log("data : " + JSON.stringify(data));
+        // });
+
+        // Running Web Stomp
+        connect()
+        // var ws = new WebSocket('ws://127.0.0.1:15674/ws');
+        // var client = Stomp.over(ws);
+
+        // // Melakukan koneksi ke RabbitMQ
+        // client.connect('YOUR_RABBITMQ_USERNAME', 'YOUR_RABBITMQ_PASSWORD', function(frame) {
+        //     console.log('Connected: ' + frame);
+
+        //     // Melakukan subscribe ke topik
+        //     client.subscribe('/topic/location.notifications.4197', function(message) {
+        //         console.log('message : ' + message.body);
+        //         let messageBody = message.body;
+        //         // create a HTML element for each feature
+        //         const el = document.createElement('div');
+        //         el.className = 'marker';
+
+        //         // make a marker for each feature and add it to the map
+        //         new mapboxgl.Marker(el)
+        //             .setLngLat([messageBody.longitude, messageBody.latitude])
+        //             .setPopup(
+        //                 new mapboxgl.Popup({
+        //                     offset: 25
+        //                 }) // add popups
+        //                 .setHTML(
+        //                     `<h5>${messageBody.device.device_name}</h5><p>${messageBody.device.online_status}</p><p>${feature.create_time}</p>`
+        //                 )
+        //             )
+        //             .addTo(map);
+        //     });
+        // }, function(error) {
+        //     console.error('Error: ' + error);
+        // });
     });
-    mapboxgl.accessToken = 'YOUR_MAPBOX_API';
+    mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS';
 
     var map = new mapboxgl.Map({
         container: 'map',
@@ -173,5 +220,49 @@
                 .addTo(map);
         }
     }
+
+    let stompClient = null;
+
+    function connect() {
+        var ws = new WebSocket('ws://127.0.0.1:15674/ws');
+        stompClient = Stomp.over(ws);
+
+        stompClient.connect('YOUR_RABBITMQ_USERNAME', 'YOUR_RABBITMQ_PASSWORD', function(frame) {
+            // Melakukan subscribe ke topik
+            stompClient.subscribe('/topic/location.notifications.4197', function(message) {
+                let messageBody = message.body;
+                // create a HTML element for each feature
+                const el = document.createElement('div');
+                el.className = 'marker';
+
+                // make a marker for each feature and add it to the map
+                new mapboxgl.Marker(el)
+                    .setLngLat([messageBody.longitude, messageBody.latitude])
+                    .setPopup(
+                        new mapboxgl.Popup({
+                            offset: 25
+                        }) // add popups
+                        .setHTML(
+                            `<h5>${messageBody.device.device_name}</h5><p>${messageBody.device.online_status}</p><p>${feature.create_time}</p>`
+                        )
+                    )
+                    .addTo(map);
+            });
+        }, function(error) {
+            console.error('STOMP error: ' + error);
+            setTimeout(connect, 5000); // Try to reconnect every 5 seconds
+        });
+
+        ws.onclose = function() {
+            console.warn('Socket closed. Reconnecting in 5 seconds...');
+            setTimeout(connect, 5000); // Try to reconnect every 5 seconds
+        };
+    }
+
+    window.onbeforeunload = function() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+    };
 </script>
 @endpush

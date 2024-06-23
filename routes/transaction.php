@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Transaction\LocationController;
+use App\Http\Controllers\Api\Transaction\LocationRabbitMQController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,5 +27,12 @@ Route::middleware('auth:sanctum')->group(function () {
             // Route::put('/update/{id}', 'updateData')->name('update');
             // Route::delete('/delete/{id}', 'deleteData')->name('delete');
         });
+    });
+});
+
+Route::prefix('transaction')->group(function () {
+    /**Route Transaction Location RabbitMQ */
+    Route::controller(LocationRabbitMQController::class)->prefix('location-rabbitmq')->name('location.')->group(function () {
+        Route::post('/get-data-sensecap', 'getDataSenseCAP')->name('get-data-sensecap');
     });
 });
